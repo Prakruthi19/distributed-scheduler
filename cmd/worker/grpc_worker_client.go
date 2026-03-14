@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"flag"
 	"log"
 	"math/rand"
 	"time"
@@ -19,14 +20,16 @@ type GRPCWorkerClient struct {
 	conn       *grpc.ClientConn
 	client     pb.MasterClient
 	running    bool
+	Labels    map[string]string
 }
 
 // NewGRPCWorkerClient creates a new worker client
-func NewGRPCWorkerClient(nodeID, nodeName, masterAddr string, totalResources models.Resource) *GRPCWorkerClient {
+func NewGRPCWorkerClient(nodeID, nodeName, masterAddr string, totalResources models.Resource, labels map[string]string) *GRPCWorkerClient {
 	return &GRPCWorkerClient{
 		node:       models.NewNode(nodeID, nodeName, totalResources),
 		masterAddr: masterAddr,
 		running:    false,
+		Labels:    labels,
 	}
 }
 
@@ -55,6 +58,7 @@ func (w *GRPCWorkerClient) Register(workerListenAddr string) error {
 		Name:    w.node.Name,
 		Total:   &pb.Resource{Cpu: w.node.Total.CPU, Memory: w.node.Total.Memory, Disk: w.node.Total.Disk},
 		Address: workerListenAddr,
+		Labels:  w.Labels,
 	}
 
 	resp, err := w.client.RegisterNode(context.Background(), req)
@@ -257,13 +261,21 @@ func (w *GRPCWorkerClient) GetStatus() string {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	workerID := flag.String("id", "worker-1", "Unique ID for the worker")
+    diskType := flag.String("disk", "ssd", "Type of disk (hdd or ssd)")
+    
+	flag.Parse()
 
+	labels := map[string]string{
+        "disk": *diskType,
+    }
 	// Create worker
 	worker := NewGRPCWorkerClient(
-		"worker-1",
-		"Worker-1",
+		*workerID,
+        *workerID,
 		"localhost:50051", // Master address
-		models.NewResource(4000, 8192, 50000), // 4 CPUs, 8GB RAM, 50GB Disk
+		models.NewResource(4000, 1024, 50000), // 4 CPUs, 8GB RAM, 50GB Disk
+		labels, 
 	)
 
 	// Connect to Master
@@ -291,3 +303,4 @@ func main() {
 		fmt.Println(worker.GetStatus())
 	}
 }
+

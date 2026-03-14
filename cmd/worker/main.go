@@ -188,13 +188,15 @@ func main() {
 	worker.Start()
 
 	// Simulate assigning some tasks
-	task1 := models.NewTask("task-1", "Processing Job", models.NewResource(1000, 2048, 5000))
-	task2 := models.NewTask("task-2", "ML Training", models.NewResource(2000, 4096, 20000))
-	task3 := models.NewTask("task-3", "API Server", models.NewResource(500, 1024, 2000))
+    task1 := models.NewTask("task-1", "Processing Job", models.NewResource(1000, 2048, 5000), 1)
+	task2 := models.NewTask("task-2", "ML Training", models.NewResource(2000, 4096, 20000), 0)
+	task3 := models.NewTask("task-3", "API Server", models.NewResource(2000, 4000, 2000), 2)
+	task4 := models.NewTask("task-4", "Background Cleanup", models.NewResource(500, 500, 500), 0)
 
 	worker.AssignTask(task1)
 	worker.AssignTask(task2)
 	worker.AssignTask(task3)
+	worker.AssignTask(task4) 
 
 	// Let worker run
 	time.Sleep(5 * time.Second)

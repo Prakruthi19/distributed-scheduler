@@ -19,6 +19,8 @@ type Task struct {
 	CreatedAt    time.Time
 	Status       string // "pending", "running", "completed", "failed"
 	AssignedNode string
+	Priority     int32
+	NodeSelector map[string]string
 }
 
 // Node represents a worker machine in the cluster
@@ -30,6 +32,7 @@ type Node struct {
 	Tasks     []string // Task IDs running on this node
 	Healthy   bool
 	LastSeen  time.Time
+	Labels map[string]string
 }
 
 // SchedulingResult represents the outcome of scheduling a task
@@ -56,13 +59,15 @@ func NewResource(cpu, memory, disk int64) Resource {
 }
 
 // NewTask creates a new Task
-func NewTask(id, name string, required Resource) *Task {
+func NewTask(id, name string, required Resource, priority int32,selector map[string]string) *Task {
 	return &Task{
 		ID:        id,
 		Name:      name,
 		Required:  required,
 		CreatedAt: time.Now(),
 		Status:    "pending",
+		Priority:  priority,
+		NodeSelector: selector,
 	}
 }
 

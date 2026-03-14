@@ -32,7 +32,8 @@ message NodeInfo {
     string id = 1;
     string name = 2;
     Resource total = 3;
-    string address = 4;  // Worker's IP:Port
+    string address = 4; 
+    map<string, string> labels = 5; // Worker's IP:Port
 }
 
 // RegisterResponse - Master responds with registration status
@@ -63,6 +64,8 @@ message Task {
     Resource required = 3;
     string status = 4;  // "pending", "running", "completed", "failed"
     int64 created_at = 5;  // Unix timestamp
+    int32 priority = 6;
+    map<string, string> node_selector = 7;
 }
 
 // GetTaskRequest - Worker asks Master for tasks

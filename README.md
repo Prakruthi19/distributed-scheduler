@@ -470,8 +470,8 @@ By studying this project, you'll understand:
 - [x] Resource tracking
 
 ### Phase 2: Advanced Features
-- [ ] Task priority queues
-- [ ] Task affinity rules
+- [x] Task priority queues
+- [x] Task affinity rules
 - [ ] Anti-affinity policies
 - [ ] Resource quotas per worker
 - [ ] Task timeout handling

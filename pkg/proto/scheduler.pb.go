@@ -88,7 +88,8 @@ type NodeInfo struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Total         *Resource              `protobuf:"bytes,3,opt,name=total,proto3" json:"total,omitempty"`
-	Address       string                 `protobuf:"bytes,4,opt,name=address,proto3" json:"address,omitempty"` // Worker's IP:Port
+	Address       string                 `protobuf:"bytes,4,opt,name=address,proto3" json:"address,omitempty"`
+	Labels        map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // Worker's IP:Port
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -149,6 +150,13 @@ func (x *NodeInfo) GetAddress() string {
 		return x.Address
 	}
 	return ""
+}
+
+func (x *NodeInfo) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
 }
 
 // RegisterResponse - Master responds with registration status
@@ -342,6 +350,8 @@ type Task struct {
 	Required      *Resource              `protobuf:"bytes,3,opt,name=required,proto3" json:"required,omitempty"`
 	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`                         // "pending", "running", "completed", "failed"
 	CreatedAt     int64                  `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"` // Unix timestamp
+	Priority      int32                  `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
+	NodeSelector  map[string]string      `protobuf:"bytes,7,rep,name=node_selector,json=nodeSelector,proto3" json:"node_selector,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -409,6 +419,20 @@ func (x *Task) GetCreatedAt() int64 {
 		return x.CreatedAt
 	}
 	return 0
+}
+
+func (x *Task) GetPriority() int32 {
+	if x != nil {
+		return x.Priority
+	}
+	return 0
+}
+
+func (x *Task) GetNodeSelector() map[string]string {
+	if x != nil {
+		return x.NodeSelector
+	}
+	return nil
 }
 
 // GetTaskRequest - Worker asks Master for tasks
@@ -891,12 +915,16 @@ const file_pkg_proto_scheduler_proto_rawDesc = "" +
 	"\bResource\x12\x10\n" +
 	"\x03cpu\x18\x01 \x01(\x03R\x03cpu\x12\x16\n" +
 	"\x06memory\x18\x02 \x01(\x03R\x06memory\x12\x12\n" +
-	"\x04disk\x18\x03 \x01(\x03R\x04disk\"s\n" +
+	"\x04disk\x18\x03 \x01(\x03R\x04disk\"\xe7\x01\n" +
 	"\bNodeInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12)\n" +
 	"\x05total\x18\x03 \x01(\v2\x13.scheduler.ResourceR\x05total\x12\x18\n" +
-	"\aaddress\x18\x04 \x01(\tR\aaddress\"_\n" +
+	"\aaddress\x18\x04 \x01(\tR\aaddress\x127\n" +
+	"\x06labels\x18\x05 \x03(\v2\x1f.scheduler.NodeInfo.LabelsEntryR\x06labels\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"_\n" +
 	"\x10RegisterResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x17\n" +
@@ -908,14 +936,19 @@ const file_pkg_proto_scheduler_proto_rawDesc = "" +
 	"\ahealthy\x18\x04 \x01(\bR\ahealthy\"I\n" +
 	"\x11HeartbeatResponse\x12\x1a\n" +
 	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\x92\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xb7\x02\n" +
 	"\x04Task\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12/\n" +
 	"\brequired\x18\x03 \x01(\v2\x13.scheduler.ResourceR\brequired\x12\x16\n" +
 	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\x03R\tcreatedAt\")\n" +
+	"created_at\x18\x05 \x01(\x03R\tcreatedAt\x12\x1a\n" +
+	"\bpriority\x18\x06 \x01(\x05R\bpriority\x12F\n" +
+	"\rnode_selector\x18\a \x03(\v2!.scheduler.Task.NodeSelectorEntryR\fnodeSelector\x1a?\n" +
+	"\x11NodeSelectorEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\")\n" +
 	"\x0eGetTaskRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\"w\n" +
 	"\x11TaskStatusRequest\x12\x17\n" +
@@ -968,7 +1001,7 @@ func file_pkg_proto_scheduler_proto_rawDescGZIP() []byte {
 	return file_pkg_proto_scheduler_proto_rawDescData
 }
 
-var file_pkg_proto_scheduler_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_pkg_proto_scheduler_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_pkg_proto_scheduler_proto_goTypes = []any{
 	(*Resource)(nil),             // 0: scheduler.Resource
 	(*NodeInfo)(nil),             // 1: scheduler.NodeInfo
@@ -984,30 +1017,34 @@ var file_pkg_proto_scheduler_proto_goTypes = []any{
 	(*WorkerStatusResponse)(nil), // 11: scheduler.WorkerStatusResponse
 	(*SchedulingResult)(nil),     // 12: scheduler.SchedulingResult
 	(*Empty)(nil),                // 13: scheduler.Empty
+	nil,                          // 14: scheduler.NodeInfo.LabelsEntry
+	nil,                          // 15: scheduler.Task.NodeSelectorEntry
 }
 var file_pkg_proto_scheduler_proto_depIdxs = []int32{
 	0,  // 0: scheduler.NodeInfo.total:type_name -> scheduler.Resource
-	0,  // 1: scheduler.HeartbeatRequest.available:type_name -> scheduler.Resource
-	0,  // 2: scheduler.Task.required:type_name -> scheduler.Resource
-	0,  // 3: scheduler.WorkerStatusResponse.available:type_name -> scheduler.Resource
-	0,  // 4: scheduler.WorkerStatusResponse.total:type_name -> scheduler.Resource
-	1,  // 5: scheduler.Master.RegisterNode:input_type -> scheduler.NodeInfo
-	3,  // 6: scheduler.Master.Heartbeat:input_type -> scheduler.HeartbeatRequest
-	6,  // 7: scheduler.Master.GetTask:input_type -> scheduler.GetTaskRequest
-	7,  // 8: scheduler.Master.ReportTaskStatus:input_type -> scheduler.TaskStatusRequest
-	5,  // 9: scheduler.Worker.AssignTask:input_type -> scheduler.Task
-	10, // 10: scheduler.Worker.GetWorkerStatus:input_type -> scheduler.StatusRequest
-	2,  // 11: scheduler.Master.RegisterNode:output_type -> scheduler.RegisterResponse
-	4,  // 12: scheduler.Master.Heartbeat:output_type -> scheduler.HeartbeatResponse
-	5,  // 13: scheduler.Master.GetTask:output_type -> scheduler.Task
-	8,  // 14: scheduler.Master.ReportTaskStatus:output_type -> scheduler.TaskStatusResponse
-	9,  // 15: scheduler.Worker.AssignTask:output_type -> scheduler.AssignTaskResponse
-	11, // 16: scheduler.Worker.GetWorkerStatus:output_type -> scheduler.WorkerStatusResponse
-	11, // [11:17] is the sub-list for method output_type
-	5,  // [5:11] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	14, // 1: scheduler.NodeInfo.labels:type_name -> scheduler.NodeInfo.LabelsEntry
+	0,  // 2: scheduler.HeartbeatRequest.available:type_name -> scheduler.Resource
+	0,  // 3: scheduler.Task.required:type_name -> scheduler.Resource
+	15, // 4: scheduler.Task.node_selector:type_name -> scheduler.Task.NodeSelectorEntry
+	0,  // 5: scheduler.WorkerStatusResponse.available:type_name -> scheduler.Resource
+	0,  // 6: scheduler.WorkerStatusResponse.total:type_name -> scheduler.Resource
+	1,  // 7: scheduler.Master.RegisterNode:input_type -> scheduler.NodeInfo
+	3,  // 8: scheduler.Master.Heartbeat:input_type -> scheduler.HeartbeatRequest
+	6,  // 9: scheduler.Master.GetTask:input_type -> scheduler.GetTaskRequest
+	7,  // 10: scheduler.Master.ReportTaskStatus:input_type -> scheduler.TaskStatusRequest
+	5,  // 11: scheduler.Worker.AssignTask:input_type -> scheduler.Task
+	10, // 12: scheduler.Worker.GetWorkerStatus:input_type -> scheduler.StatusRequest
+	2,  // 13: scheduler.Master.RegisterNode:output_type -> scheduler.RegisterResponse
+	4,  // 14: scheduler.Master.Heartbeat:output_type -> scheduler.HeartbeatResponse
+	5,  // 15: scheduler.Master.GetTask:output_type -> scheduler.Task
+	8,  // 16: scheduler.Master.ReportTaskStatus:output_type -> scheduler.TaskStatusResponse
+	9,  // 17: scheduler.Worker.AssignTask:output_type -> scheduler.AssignTaskResponse
+	11, // 18: scheduler.Worker.GetWorkerStatus:output_type -> scheduler.WorkerStatusResponse
+	13, // [13:19] is the sub-list for method output_type
+	7,  // [7:13] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_pkg_proto_scheduler_proto_init() }
@@ -1021,7 +1058,7 @@ func file_pkg_proto_scheduler_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pkg_proto_scheduler_proto_rawDesc), len(file_pkg_proto_scheduler_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

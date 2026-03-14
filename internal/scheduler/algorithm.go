@@ -80,6 +80,9 @@ func (bps *BinPackingScheduler) getCandidateNodes(task *models.Task, clusterStat
 	var candidates []*models.Node
 
 	for _, node := range clusterState.Nodes {
+		if !matchesNodeSelector(task.NodeSelector, node.Labels) {
+            continue 
+        }
 		if node.CanFit(task) {
 			candidates = append(candidates, node)
 		}
@@ -225,4 +228,20 @@ func CalculateMetrics(clusterState *models.ClusterState) ClusterMetrics {
 	}
 
 	return metrics
+}
+
+func matchesNodeSelector(selector map[string]string, labels map[string]string) bool {
+    // If no selector is defined, the task is happy anywhere
+    if len(selector) == 0 {
+        return true
+    }
+
+    // Check every key-value pair in the task's selector
+    for key, requiredVal := range selector {
+        nodeVal, exists := labels[key]
+        if !exists || nodeVal != requiredVal {
+            return false
+        }
+    }
+    return true
 }
